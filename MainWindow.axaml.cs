@@ -33,7 +33,7 @@ class Square : Shape
 	public override void Draw(Canvas canv)
 	{
 		Avalonia.Controls.Shapes.Rectangle shape = new Avalonia.Controls.Shapes.Rectangle()
-		{ Width = Radius, Height = Radius, Fill = Avalonia.Media.Brushes.DarkRed, StrokeThickness = 5, Stroke = Avalonia.Media.Brushes.Black };
+		{ Width = Radius, Height = Radius, Fill = Avalonia.Media.Brushes.DarkRed, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black };
 		canv.Children.Add(shape);
 		Canvas.SetLeft(shape, x - Radius / 2);
 		Canvas.SetTop(shape, y - Radius / 2);
@@ -58,7 +58,7 @@ class Triangle : Shape
 	{
 
 		List<Avalonia.Point> tmp = new List<Avalonia.Point>() { new Avalonia.Point(this.x - z, this.y + Radius / 2), new Avalonia.Point(this.x + z, this.y + Radius / 2), new Avalonia.Point(this.x, this.y - Radius) };
-		Polygon shape = new Polygon() { Points = tmp, Fill = Avalonia.Media.Brushes.DarkRed, StrokeThickness = 5, Stroke = Avalonia.Media.Brushes.Black };
+		Polygon shape = new Polygon() { Points = tmp, Fill = Avalonia.Media.Brushes.DarkRed, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black };
 		canv.Children.Add(shape);
 		Canvas.SetLeft(shape, 0);
 		Canvas.SetTop(shape, 0);
@@ -83,7 +83,7 @@ class Circle : Shape
 	public override void Draw(Canvas canv)
 	{
 		Ellipse shape = new Ellipse()
-		{ Width = Radius, Height = Radius, Fill = Avalonia.Media.Brushes.DarkRed, StrokeThickness = 5, Stroke = Avalonia.Media.Brushes.Black };
+		{ Width = Radius, Height = Radius, Fill = Avalonia.Media.Brushes.DarkRed, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black };
 		canv.Children.Add(shape);
 		Canvas.SetLeft(shape, x - Radius / 2);
 		Canvas.SetTop(shape, y - Radius / 2);
@@ -111,8 +111,8 @@ public partial class MainWindow : Window
 	}
 	private void PPressed(object sender, PointerPressedEventArgs e)
 	{
-		int X = (int)e.GetCurrentPoint(canv).Position.X;
-		int Y = (int)e.GetCurrentPoint(canv).Position.Y;
+		double X = e.GetCurrentPoint(canv).Position.X;
+		double Y = e.GetCurrentPoint(canv).Position.Y;
 		foreach (Shape shape in shapes)
 		{
 			if (shape.IsInside(X, Y)) return;
