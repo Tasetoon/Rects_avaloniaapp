@@ -14,7 +14,7 @@ namespace Rects;
 
 abstract class Shape
 {
-	public static double Radius = 100;
+	public static double Radius = 50;
 	protected double x;
 	protected double y;
 	static Shape() { }
@@ -100,6 +100,7 @@ public partial class MainWindow : Window
 	public MainWindow()
 	{
 		InitializeComponent();
+		AddButtons();
 	}
 	public void Redraw()
 	{
@@ -120,6 +121,22 @@ public partial class MainWindow : Window
 		shapes.Add(new Triangle(X, Y));
 		Redraw();
 	}
-
+	private Button CreateBtn(int w, string content, string name)
+	{
+		Button b = new Button();
+		b.Width = w;
+		b.Height = 30;
+		b.Content = content;
+		b.Name = name;
+		b.Background = Avalonia.Media.Brushes.Gray;
+		b.BorderBrush = Avalonia.Media.Brushes.Black;
+		return b;
+	}
+	private void AddButtons()
+	{
+		Buttons.Children.Add(CreateBtn(65, "square", "switch_to_square"));
+		Buttons.Children.Add(CreateBtn(57, "circle", "switch_to_circle"));
+		Buttons.Children.Add(CreateBtn(72, "triangle", "switch_to_triangle"));
+	}
 
 }

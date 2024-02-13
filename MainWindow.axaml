@@ -7,8 +7,10 @@
 		PointerPressed="PPressed"
         Title="Rects">
 
-	<StackPanel Name="stack"  Background="#fff">
-
+	<StackPanel Name="stack"  Background="Gray">
+		<StackPanel Name="Buttons" Orientation="Horizontal">
+			
+		</StackPanel> 
 		<Canvas Name="canv">
 			<Polygon Name="pol" Points=""/>
 		</Canvas>
