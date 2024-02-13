@@ -14,8 +14,7 @@ namespace Rects;
 
 abstract class Shape
 {
-	public static double Radius = 50;
-	public static string Color;
+	public static double Radius = 100;
 	protected double x;
 	protected double y;
 	static Shape() { }
@@ -32,14 +31,14 @@ class Square : Shape
 
 	}
 	public override void Draw(Canvas canv)
-    {
-        Avalonia.Controls.Shapes.Rectangle shape = new Avalonia.Controls.Shapes.Rectangle()
-        { Width = Radius, Height = Radius, Fill = Avalonia.Media.Brushes.Aqua };
-        canv.Children.Add(shape);
-        Canvas.SetLeft(shape, x);
-        Canvas.SetTop(shape, y);
+	{
+		Avalonia.Controls.Shapes.Rectangle shape = new Avalonia.Controls.Shapes.Rectangle()
+		{ Width = Radius, Height = Radius, Fill = Avalonia.Media.Brushes.Aqua };
+		canv.Children.Add(shape);
+		Canvas.SetLeft(shape, x - Radius / 2);
+		Canvas.SetTop(shape, y - Radius / 2);
 
-    }
+	}
 	public override bool IsInside(double x, double y)
 	{
 		if (Math.Abs(x - this.x) <= Radius / 2 && Math.Abs(y - this.y) <= Radius / 2) { return true; } else { return false; }
@@ -48,6 +47,7 @@ class Square : Shape
 }
 class Triangle : Shape
 {
+	private double z = Radius / 2 * Math.Pow(3, 0.5);
 	public Triangle(double x, double y)
 	{
 		this.x = x;
@@ -57,11 +57,18 @@ class Triangle : Shape
 	public override void Draw(Canvas canv)
 	{
 
-		
+		List<Avalonia.Point> tmp = new List<Avalonia.Point>() { new Avalonia.Point(this.x - z, this.y + Radius / 2), new Avalonia.Point(this.x + z, this.y + Radius / 2), new Avalonia.Point(this.x, this.y - Radius) };
+		Avalonia.Controls.Shapes.Polygon shape = new Avalonia.Controls.Shapes.Polygon() { Points = tmp, Fill = Avalonia.Media.Brushes.Aqua };
+		canv.Children.Add(shape);
+		Canvas.SetLeft(shape, 0);
+		Canvas.SetTop(shape, 0);
+
 	}
-	public override bool IsInside(double x, double y) //работает
+	public override bool IsInside(double x, double y)
 	{
-		if (y <= this.x - x * Math.Pow(3, 0.5) && y <= this.x - x * (-1) * Math.Pow(3, 0.5) && y >= this.y - (Radius / 2)) { return true; } else { return false; }
+		double z = Math.Pow(3, 0.5);
+
+		if (y <= (this.y + (Radius / 2)) && y >= (x - this.x) * z + this.y - Radius && y >= -1 * (x - this.x) * z + this.y - Radius) { return true; } else { return false; }
 	}
 
 }
@@ -73,16 +80,17 @@ class Circle : Shape
 		this.y = y;
 
 	}
-	public override void Draw(Canvas canv) {
+	public override void Draw(Canvas canv)
+	{
 		Avalonia.Controls.Shapes.Ellipse shape = new Avalonia.Controls.Shapes.Ellipse()
 		{ Width = Radius, Height = Radius, Fill = Avalonia.Media.Brushes.Aqua };
 		canv.Children.Add(shape);
-		Canvas.SetLeft(shape, x);
-		Canvas.SetTop(shape, y);
+		Canvas.SetLeft(shape, x - Radius / 2);
+		Canvas.SetTop(shape, y - Radius / 2);
 	}
 	public override bool IsInside(double x, double y) //работает
 	{
-		if (Math.Pow(x - this.x, 2) + Math.Pow(y - this.y, 2) <= Math.Pow(Radius, 2)) { return true; } else { return false; }
+		if (Math.Pow(x - this.x, 2) + Math.Pow(y - this.y, 2) <= Math.Pow(Radius, 2) / 4) { return true; } else { return false; }
 	}
 
 }
@@ -109,101 +117,9 @@ public partial class MainWindow : Window
 		{
 			if (shape.IsInside(X, Y)) return;
 		}
-		shapes.Add(new Circle(X - Shape.Radius/2, Y - Shape.Radius / 2));
+		shapes.Add(new Triangle(X, Y));
 		Redraw();
 	}
-	/*private void PWheel(object sender, PointerWheelEventArgs e)
-	{
-		//Console.WriteLine($"Pointer pressed: {e.KeyModifiers}, {e.Delta}, {e.GetCurrentPoint(null).Position}");
-		if (e.Delta.Y == 1) speed++;
-		else speed--;
-		if (speed < 6) { speed = 5; }
-		lb.Content = $"Speed: {speed}";
-	}*/
-	/*private void Move(string Direction)
-	{
-		if (Direction == "Up")
-		{
-
-			for (int i = 0; i < rectangles.Count; ++i)
-			{
-				Canvas.SetLeft(rectangles[i].R, rectangles[i].X);
-				Canvas.SetTop(rectangles[i].R, rectangles[i].Y - speed);
-				rectangles[i].Y -= speed;
-
-			}
-		}
-		else if (Direction == "Down")
-		{
-			for (int i = 0; i < rectangles.Count; ++i)
-			{
-				Canvas.SetLeft(rectangles[i].R, rectangles[i].X);
-				Canvas.SetTop(rectangles[i].R, rectangles[i].Y + speed);
-				rectangles[i].Y += speed;
-
-			}
-		}
-		else if (Direction == "Left")
-		{
-			for (int i = 0; i < rectangles.Count; ++i)
-			{
-
-				Canvas.SetLeft(rectangles[i].R, rectangles[i].X - speed);
-				Canvas.SetTop(rectangles[i].R, rectangles[i].Y);
-				rectangles[i].X -= speed;
-			}
-		}
-		else if (Direction == "Right")
-		{
-			for (int i = 0; i < rectangles.Count; ++i)
-			{
-
-				Canvas.SetLeft(rectangles[i].R, rectangles[i].X + speed);
-				Canvas.SetTop(rectangles[i].R, rectangles[i].Y);
-				rectangles[i].X += speed;
-			}
-		}
-
-
-	}*/
-
-	/*private void KeyDown(object sender, KeyEventArgs e)
-	{
-		switch (e.Key)
-		{
-			case Key.Up:
-				Move("Up");
-				break;
-			case Key.Down:
-				Move("Down");
-				break;
-			case Key.Left:
-				Move("Left");
-				break;
-			case Key.Right:
-				Move("Right");
-				break;
-			case Key.D:
-				if (rectangles.Count == 0) break;
-				else
-				{
-					canv.Children.Remove(rectangles[rectangles.Count - 1].R);
-					rectangles.RemoveAt(rectangles.Count - 1);
-				}
-				break;
-		}
-	}*/
-	/*private MyRectangle CreateRect()
-	{
-		Avalonia.Controls.Shapes.Rectangle rect = new Avalonia.Controls.Shapes.Rectangle();
-		rect.Width = 20;
-		rect.Height = 20;
-		rect.Fill = Avalonia.Media.Brushes.MediumPurple;
-		canv.Children.Add(rect);
-		MyRectangle r = new MyRectangle(rect);
-		rectangles.Add(r);
-		return r;
-	}*/
 
 
 }
