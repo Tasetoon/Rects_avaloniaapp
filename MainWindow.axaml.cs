@@ -17,20 +17,22 @@ abstract class Shape
 	public static double Radius = 50;
 	protected double x;
 	protected double y;
+	protected bool IsSelected = false;
 	static Shape() { }
 
     abstract public void Draw(Canvas canv);
 	public virtual bool IsInside(double x, double y) { if (this.x == x && this.y == y) return true; else return false; }
 
-	public double X
+	public void SetPoint(double x, double y)
 	{
-		get { return x; }
-		set { x = value; }
+		this.x = x;
+		this.y = y;
 	}
-	public double Y
+
+	public bool IsSELECTED
 	{
-		get { return x; }
-		set { x = value; }
+		get { return IsSelected; }
+		set {  IsSelected = value; }
 	}
 }
 class Square : Shape
@@ -109,6 +111,7 @@ public partial class MainWindow : Window
 {
 	List<Shape> shapes = new List<Shape>();
 	private string type = "square";
+	protected bool IsAnySelected = false;
 	public MainWindow()
 	{
 		InitializeComponent();
@@ -130,28 +133,54 @@ public partial class MainWindow : Window
 		{
 			if (shape.IsInside(X, Y))
 			{
-				return;
+				shape.IsSELECTED = true;
+				IsAnySelected = true;
 			}
 
 		}
-		if(type == "circle")
+		if(!IsAnySelected)
 		{
-			shapes.Add(new Circle(X, Y));
+			if (type == "circle")
+			{
+				shapes.Add(new Circle(X, Y));
+			}
+			else if (type == "square")
+			{
+				shapes.Add(new Square(X, Y));
+			}
+			else if (type == "triangle")
+			{
+				shapes.Add(new Triangle(X, Y));
+			}
 		}
-		else if(type == "square")
-		{
-			shapes.Add(new Square(X, Y));
-		}
-		else if (type == "triangle")
-		{
-			shapes.Add(new Triangle(X, Y));
-		}
+		
 
 		Redraw();
 	}
-	private void PointerReleased(object sender, PointerReleasedEventArgs e)
+	private void PMoved(object sender, PointerEventArgs e)
 	{
-
+		if(!IsAnySelected)
+		{
+			return;
+		}
+		foreach(Shape shape in shapes)
+		{
+			if (shape.IsSELECTED)
+			{
+				double X = e.GetCurrentPoint(canv).Position.X;
+				double Y = e.GetCurrentPoint(canv).Position.Y;
+				shape.SetPoint(X, Y);
+			}
+		}
+		Redraw();
+	}
+	private void PReleased(object sender, PointerReleasedEventArgs e)
+	{
+		IsAnySelected = false;
+		foreach (Shape shape in shapes)
+		{
+			shape.IsSELECTED = false;
+		}
 	}
 	private Button CreateBtn(int w, string content, string name, EventHandler<RoutedEventArgs> x)
 	{
