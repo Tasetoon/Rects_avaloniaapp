@@ -75,7 +75,7 @@ abstract class Shape
 	public override void Draw(Canvas canv)
 	{
 		Avalonia.Controls.Shapes.Rectangle shape = new Avalonia.Controls.Shapes.Rectangle()
-		{ Width = Radius, Height = Radius, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black};
+		{ Width = Radius, Height = Radius, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black, Fill = color};
 		canv.Children.Add(shape);
 		Canvas.SetLeft(shape, x - Radius / 2);
 		Canvas.SetTop(shape, y - Radius / 2);
@@ -100,7 +100,7 @@ class Triangle : Shape
 	{
 		
 		List<Avalonia.Point> tmp = new List<Avalonia.Point>() { new Avalonia.Point(this.x - z, this.y + Radius / 4), new Avalonia.Point(this.x + z, this.y + Radius / 4), new Avalonia.Point(this.x, this.y - Radius/2) };
-		Polygon shape = new Polygon() { Points = tmp, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black };
+		Polygon shape = new Polygon() { Points = tmp, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black, Fill = color};
 		canv.Children.Add(shape);
 		Canvas.SetLeft(shape, 0);
 		Canvas.SetTop(shape, 0);
@@ -125,7 +125,7 @@ class Circle : Shape
 	public override void Draw(Canvas canv)
 	{
 		Ellipse shape = new Ellipse()
-		{ Width = Radius, Height = Radius, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black};
+		{ Width = Radius, Height = Radius, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black, Fill = color};
 		canv.Children.Add(shape);
 		Canvas.SetLeft(shape, x - Radius / 2);
 		Canvas.SetTop(shape, y - Radius / 2);
@@ -153,9 +153,17 @@ public partial class MainWindow : Window
 		for(int i = 0; i <  shapes.Count; i += 3)
 		{
 			shapes[i].Color = Avalonia.Media.Brushes.White;
-			shapes[i+1].Color = Avalonia.Media.Brushes.Blue;
-			shapes[i+2].Color = Avalonia.Media.Brushes.Red;
 			
+		}
+		for (int i = 1; i < shapes.Count; i += 3)
+		{
+			shapes[i].Color = Avalonia.Media.Brushes.Blue;
+
+		}
+		for (int i = 2; i < shapes.Count; i += 3)
+		{
+			shapes[i].Color = Avalonia.Media.Brushes.Red;
+
 		}
 		foreach (Shape shape in shapes)
 		{
