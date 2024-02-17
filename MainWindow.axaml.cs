@@ -229,9 +229,11 @@ public partial class MainWindow : Window
 		Button b_square =CreateBtn(65, "square", "switch_to_square", button_click_square);
 		Button b_circle = CreateBtn(57, "circle", "switch_to_circle", button_click_circle);
 		Button b_triangle = CreateBtn(72, "triangle", "switch_to_triangle", button_click_triangle);
+		Button b_clear = CreateBtn(50, "clear", "clear_all_shapes", button_click_clear);
 		Buttons.Children.Add(b_square);
 		Buttons.Children.Add(b_circle);
 		Buttons.Children.Add(b_triangle);
+		Buttons.Children.Add(b_clear);
 
 		
 	}
@@ -247,5 +249,10 @@ public partial class MainWindow : Window
 	private void button_click_triangle(object sender, RoutedEventArgs args)
 	{
 		type = "triangle";
+	}
+	private void button_click_clear(object sender, RoutedEventArgs args)
+	{
+		shapes.Clear();
+		Redraw();
 	}
 }
