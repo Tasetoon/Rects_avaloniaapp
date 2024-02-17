@@ -98,19 +98,20 @@ class Triangle : Shape
 	}
 	public override void Draw(Canvas canv)
 	{
-		
-		List<Avalonia.Point> tmp = new List<Avalonia.Point>() { new Avalonia.Point(this.x - z, this.y + Radius / 4), new Avalonia.Point(this.x + z, this.y + Radius / 4), new Avalonia.Point(this.x, this.y - Radius/2) };
-		Polygon shape = new Polygon() { Points = tmp, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black, Fill = color};
+
+		List<Avalonia.Point> tmp = new List<Avalonia.Point>() { new Avalonia.Point(this.x - z, this.y + Radius / 4), new Avalonia.Point(this.x + z, this.y + Radius / 4), new Avalonia.Point(this.x, this.y - Radius / 2) };
+		Polygon shape = new Polygon() { Points = tmp, Fill = color, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black };
 		canv.Children.Add(shape);
 		Canvas.SetLeft(shape, 0);
 		Canvas.SetTop(shape, 0);
+
 
 	}
 	public override bool IsInside(double x, double y)
 	{
 		double z = Math.Pow(3, 0.5);
 
-		if (y <= (this.y + (Radius / 2)) && y >= (x - this.x) * z + this.y - Radius && y >= -1 * (x - this.x) * z + this.y - Radius) { return true; } else { return false; }
+		if (y <= (this.y + (Radius / 4)) && y >= (x - this.x) * z + this.y - Radius/2 && y >= -1 * (x - this.x) * z + this.y - Radius/2) { return true; } else { return false; }
 	}
 
 }
