@@ -15,7 +15,7 @@
 			
 		</StackPanel> 
 		<Canvas Name="canv">
-			<Polygon Name="pol" Points=""/>
+			
 		</Canvas>
 	</StackPanel>
 
