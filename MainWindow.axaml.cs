@@ -18,9 +18,11 @@ abstract class Shape
 	protected double x;
 	protected double y;
 	protected bool IsSelected = false;
+	protected double Dx;
+	protected double Dy;
 	static Shape() { }
 
-    abstract public void Draw(Canvas canv);
+	abstract public void Draw(Canvas canv);
 	public virtual bool IsInside(double x, double y) { if (this.x == x && this.y == y) return true; else return false; }
 
 	public void SetPoint(double x, double y)
@@ -28,14 +30,39 @@ abstract class Shape
 		this.x = x;
 		this.y = y;
 	}
+	public void SetDelta(double Dx, double Dy)
+	{
+		this.Dx = Dx;
+		this.Dy = Dy;
+	}
 
 	public bool IsSELECTED
 	{
 		get { return IsSelected; }
-		set {  IsSelected = value; }
+		set { IsSelected = value; }
+	}
+	public double DX
+	{
+		get { return Dx; }
+		set { Dx = value; }
+	}
+	public double DY
+	{
+		get { return Dy; }
+		set { Dy = value; }
+	}
+	public double X
+	{
+		get { return x; }
+		set { x = value; }
+	}
+	public double Y
+	{
+		get { return y; }
+		set { y = value; }
 	}
 }
-class Square : Shape
+	class Square : Shape
 {
 	public Square(double x, double y)
 	{
@@ -135,6 +162,8 @@ public partial class MainWindow : Window
 			{
 				shape.IsSELECTED = true;
 				IsAnySelected = true;
+				shape.DX = X - shape.X;
+				shape.DY = Y - shape.Y;
 			}
 
 		}
@@ -169,7 +198,8 @@ public partial class MainWindow : Window
 			{
 				double X = e.GetCurrentPoint(canv).Position.X;
 				double Y = e.GetCurrentPoint(canv).Position.Y;
-				shape.SetPoint(X, Y);
+
+				shape.SetPoint(X-shape.DX, Y-shape.DY);
 			}
 		}
 		Redraw();
