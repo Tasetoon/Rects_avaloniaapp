@@ -9,6 +9,7 @@ using System;
 using System.Drawing;
 using System.Net;
 using Avalonia;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Rects;
 
@@ -20,6 +21,7 @@ abstract class Shape
 	protected bool IsSelected = false;
 	protected double Dx;
 	protected double Dy;
+	protected string type;
 	protected Avalonia.Media.IBrush color;
 
 	static Shape() { }
@@ -27,6 +29,14 @@ abstract class Shape
 	abstract public void Draw(Canvas canv);
 	public virtual bool IsInside(double x, double y) { if (this.x == x && this.y == y) return true; else return false; }
 
+	public double R
+	{
+		get { return Radius; }
+	}
+	public string Type
+	{
+		get { return type; }
+	}
 	public void SetPoint(double x, double y)
 	{
 		this.x = x;
@@ -66,10 +76,12 @@ abstract class Shape
 }
 	class Square : Shape
 {
+	
 	public Square(double x, double y)
 	{
 		this.x = x;
 		this.y = y;
+		type = "square";
 
 	}
 	public override void Draw(Canvas canv)
@@ -90,14 +102,16 @@ abstract class Shape
 class Triangle : Shape
 {
 	private double z = Radius / 4 * Math.Pow(3, 0.5);
+	
 	public Triangle(double x, double y)
 	{
 		this.x = x;
 		this.y = y;
-
+		type = "triangle";
 	}
 	public override void Draw(Canvas canv)
 	{
+		
 
 		List<Avalonia.Point> tmp = new List<Avalonia.Point>() { new Avalonia.Point(this.x - z, this.y + Radius / 4), new Avalonia.Point(this.x + z, this.y + Radius / 4), new Avalonia.Point(this.x, this.y - Radius / 2) };
 		Polygon shape = new Polygon() { Points = tmp, Fill = color, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black };
@@ -121,7 +135,7 @@ class Circle : Shape
 	{
 		this.x = x;
 		this.y = y;
-
+		type = "circle";
 	}
 	public override void Draw(Canvas canv)
 	{
@@ -142,6 +156,10 @@ public partial class MainWindow : Window
 	List<Shape> shapes = new List<Shape>();
 	private string type = "square";
 	protected bool IsAnySelected = false;
+	private Random random = new Random();
+
+	private Window window;
+	
 	public MainWindow()
 	{
 		InitializeComponent();
@@ -170,6 +188,8 @@ public partial class MainWindow : Window
 		{
 			shape.Draw(canv);
 		}
+
+		
 	}
 	private void PPressed(object sender, PointerPressedEventArgs e)
 	{
@@ -219,7 +239,33 @@ public partial class MainWindow : Window
 				double Y = e.GetCurrentPoint(canv).Position.Y;
 
 				shape.SetPoint(X-shape.DX, Y-shape.DY);
+
+				if(shape.X + shape.R/2 >= this.Bounds.Width || shape.X - shape.R / 2 <= 0)
+				{
+					shape.IsSELECTED = false;
+					return;
+				}
+
+				if(shape.Type == "triangle")
+				{
+					if (shape.Y + shape.R*0.84 >= this.Bounds.Bottom)
+					{
+						shape.IsSELECTED = false;
+						return;
+					}
+				}
+				else if (shape.Y + shape.R >= this.Bounds.Bottom)
+				{
+					shape.IsSELECTED = false;
+					return;
+				}
+				if (shape.Y-shape.R/2 <= 0)
+				{
+					shape.IsSELECTED = false;
+					return;
+				}
 			}
+			
 		}
 		Redraw();
 	}
@@ -249,10 +295,12 @@ public partial class MainWindow : Window
 		Button b_circle = CreateBtn(57, "circle", "switch_to_circle", button_click_circle);
 		Button b_triangle = CreateBtn(72, "triangle", "switch_to_triangle", button_click_triangle);
 		Button b_clear = CreateBtn(50, "clear", "clear_all_shapes", button_click_clear);
+		Button b_random = CreateBtn(70, "random", "random", button_click_random);
 		Buttons.Children.Add(b_square);
 		Buttons.Children.Add(b_circle);
 		Buttons.Children.Add(b_triangle);
 		Buttons.Children.Add(b_clear);
+		Buttons.Children.Add(b_random);
 
 		
 	}
@@ -272,6 +320,17 @@ public partial class MainWindow : Window
 	private void button_click_clear(object sender, RoutedEventArgs args)
 	{
 		shapes.Clear();
+		Redraw();
+	}
+	private void button_click_random(object sender, RoutedEventArgs args)
+	{
+		foreach (var shape in shapes)
+		{
+			int _x = random.Next(0, (int)this.Bounds.Width); 
+			int _y = random.Next(0, (int)this.Bounds.Width); 
+			shape.SetPoint(random.Next((int)shape.R/2, (int)(this.Bounds.Width-shape.R/2)), random.Next((int)shape.R/2, (int)(this.Bounds.Bottom - shape.R)));
+			
+		}
 		Redraw();
 	}
 }
