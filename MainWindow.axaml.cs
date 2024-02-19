@@ -11,6 +11,7 @@ using System.Net;
 using Avalonia;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Globalization;
+using System.Collections.Immutable;
 
 namespace Rects;
 
@@ -161,11 +162,25 @@ public partial class MainWindow : Window
 	private Random random = new Random();
 
 	private int content_radius = 50;
-	
+	List<int> cur_radiuses = new List<int>();
+	HashSet<int> SetOfRadiuses = new HashSet<int>();
+
+
 	public MainWindow()
 	{
 		InitializeComponent();
 		Navbar();
+	}
+	private void UpdateRadiusIndicator()
+	{
+		SetOfRadiuses.Clear();
+		cur_radiuses.Sort();
+		foreach (int x in cur_radiuses)
+		{
+			SetOfRadiuses.Add(x);
+		}
+
+		r_indicator.Text = $"radiuses: {string.Join(";", SetOfRadiuses)}";
 	}
 	private void Redraw()
 	{
@@ -213,7 +228,7 @@ public partial class MainWindow : Window
 			//here we control the correct spawning
 			foreach (Shape shape in shapes)
 			{
-				if (Y <= 25 || Y >= this.Bounds.Bottom - shape.R || X - shape.R/2 <= 0 || X + shape.R/2 >= this.Bounds.Width)
+				if (Y <= 25 || Y >= this.Bounds.Bottom - 25 || X - 25 <= 0 || X + 25 >= this.Bounds.Width)
 				{
 					return;
 				}
@@ -233,8 +248,8 @@ public partial class MainWindow : Window
 			{
 				shapes.Add(new Triangle(X, Y));
 			}
-			
-			
+			cur_radiuses.Add(50);
+			UpdateRadiusIndicator();
 		}
 		
 
@@ -342,6 +357,7 @@ public partial class MainWindow : Window
 	private void button_click_clear(object sender, RoutedEventArgs args)
 	{
 		shapes.Clear();
+		cur_radiuses.Clear();
 		this.content_radius = 50;
 		r_indicator.Text = $"radius: {this.content_radius}";
 		Redraw();
@@ -362,20 +378,27 @@ public partial class MainWindow : Window
 		switch (e.Key)
 		{
 			case Key.OemMinus:
-				r_indicator.Text = $"radius: {content_radius -= 5}";
 				foreach (var shape in shapes)
 				{
-
 					shape.R -= 5;
 				}
+				for(int i = 0; i < cur_radiuses.Count; ++i)
+				{
+					cur_radiuses[i] -= 5;
+				}
+				UpdateRadiusIndicator();
 				Redraw();
 				break;
 			case Key.OemPlus:
-				r_indicator.Text = $"radius: {content_radius += 5}";
 				foreach (var shape in shapes)
 				{
 					shape.R += 5;
 				}
+				for (int i = 0; i < cur_radiuses.Count; ++i)
+				{
+					cur_radiuses[i] += 5;
+				}
+				UpdateRadiusIndicator();
 				Redraw();
 				break;
 			

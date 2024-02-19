@@ -13,7 +13,7 @@
 	<StackPanel Name="stack"  Background="Gray">
 		<StackPanel Name="Buttons" Orientation="Horizontal" Background="Black">
 			<TextBox Name="r_indicator" IsEnabled="false" Foreground="White">
-				radius = 50
+				radius: 50
 			</TextBox>
 		</StackPanel>
 		<Canvas Name="canv">
