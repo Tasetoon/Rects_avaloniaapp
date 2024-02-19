@@ -226,14 +226,12 @@ public partial class MainWindow : Window
 		if(!IsAnySelected)
 		{
 			//here we control the correct spawning
-			foreach (Shape shape in shapes)
+			
+			if (Y <= 25 || Y >= this.Bounds.Bottom - 25 || X - 25 <= 0 || X + 25 >= this.Bounds.Width)
 			{
-				if (Y <= 25 || Y >= this.Bounds.Bottom - 25 || X - 25 <= 0 || X + 25 >= this.Bounds.Width)
-				{
-					return;
-				}
-
+				return;
 			}
+
 			
 			
 			if (type == "circle")
@@ -402,14 +400,31 @@ public partial class MainWindow : Window
 				Redraw();
 				break;
 			
-			/*case Key.D:
-				if (rectangles.Count == 0) break;
-				else
+			case Key.D:
+				if (shapes.Count == 0) return;
+				for (int i = 0; i < cur_radiuses.Count; ++i)
 				{
-					canv.Children.Remove(rectangles[rectangles.Count - 1].R);
-					rectangles.RemoveAt(rectangles.Count - 1);
+
+					if (cur_radiuses[i] == shapes[shapes.Count - 1].R)
+					{
+						cur_radiuses.RemoveAt(i);
+						if(cur_radiuses.Count == 0)
+						{
+							cur_radiuses.Add(50);
+							r_indicator.Text = $"radius: 50";
+							break;
+						}
+						UpdateRadiusIndicator();
+						break;
+					}
+
 				}
-				break;*/
+				shapes.RemoveAt(shapes.Count - 1);
+
+				Redraw();
+				break;
+				
+				
 		}
 	}
 }
