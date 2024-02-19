@@ -10,12 +10,13 @@ using System.Drawing;
 using System.Net;
 using Avalonia;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Globalization;
 
 namespace Rects;
 
 abstract class Shape
 {
-	public static double Radius = 50;
+	protected double Radius = 50;
 	protected double x;
 	protected double y;
 	protected bool IsSelected = false;
@@ -32,6 +33,7 @@ abstract class Shape
 	public double R
 	{
 		get { return Radius; }
+		set { Radius = value; }
 	}
 	public string Type
 	{
@@ -73,8 +75,9 @@ abstract class Shape
 		get { return color; }
 		set { color = value; }
 	}
+	
 }
-	class Square : Shape
+class Square : Shape
 {
 	
 	public Square(double x, double y)
@@ -87,7 +90,7 @@ abstract class Shape
 	public override void Draw(Canvas canv)
 	{
 		Avalonia.Controls.Shapes.Rectangle shape = new Avalonia.Controls.Shapes.Rectangle()
-		{ Width = Radius, Height = Radius, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black, Fill = color};
+		{ Width = R, Height = R, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black, Fill = color};
 		canv.Children.Add(shape);
 		Canvas.SetLeft(shape, x - Radius / 2);
 		Canvas.SetTop(shape, y - Radius / 2);
@@ -101,8 +104,6 @@ abstract class Shape
 }
 class Triangle : Shape
 {
-	private double z = Radius / 4 * Math.Pow(3, 0.5);
-	
 	public Triangle(double x, double y)
 	{
 		this.x = x;
@@ -111,8 +112,8 @@ class Triangle : Shape
 	}
 	public override void Draw(Canvas canv)
 	{
-		
 
+		double z = R / 4 * Math.Pow(3, 0.5);
 		List<Avalonia.Point> tmp = new List<Avalonia.Point>() { new Avalonia.Point(this.x - z, this.y + Radius / 4), new Avalonia.Point(this.x + z, this.y + Radius / 4), new Avalonia.Point(this.x, this.y - Radius / 2) };
 		Polygon shape = new Polygon() { Points = tmp, Fill = color, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black };
 		canv.Children.Add(shape);
@@ -140,7 +141,7 @@ class Circle : Shape
 	public override void Draw(Canvas canv)
 	{
 		Ellipse shape = new Ellipse()
-		{ Width = Radius, Height = Radius, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black, Fill = color};
+		{ Width = this.R, Height = this.R, StrokeThickness = 1, Stroke = Avalonia.Media.Brushes.Black, Fill = color};
 		canv.Children.Add(shape);
 		Canvas.SetLeft(shape, x - Radius / 2);
 		Canvas.SetTop(shape, y - Radius / 2);
@@ -153,19 +154,20 @@ class Circle : Shape
 }
 public partial class MainWindow : Window
 {
+	
 	List<Shape> shapes = new List<Shape>();
 	private string type = "square";
 	protected bool IsAnySelected = false;
 	private Random random = new Random();
 
-	private Window window;
+	private int content_radius = 50;
 	
 	public MainWindow()
 	{
 		InitializeComponent();
-		AddButtons();
+		Navbar();
 	}
-	public void Redraw()
+	private void Redraw()
 	{
 
 		canv.Children.Clear();
@@ -208,6 +210,17 @@ public partial class MainWindow : Window
 		}
 		if(!IsAnySelected)
 		{
+			//here we control the correct spawning
+			foreach (Shape shape in shapes)
+			{
+				if (Y <= 25 || Y >= this.Bounds.Bottom - shape.R || X - shape.R/2 <= 0 || X + shape.R/2 >= this.Bounds.Width)
+				{
+					return;
+				}
+
+			}
+			
+			
 			if (type == "circle")
 			{
 				shapes.Add(new Circle(X, Y));
@@ -220,6 +233,8 @@ public partial class MainWindow : Window
 			{
 				shapes.Add(new Triangle(X, Y));
 			}
+			
+			
 		}
 		
 
@@ -254,7 +269,7 @@ public partial class MainWindow : Window
 						return;
 					}
 				}
-				else if (shape.Y + shape.R >= this.Bounds.Bottom)
+				else if (shape.Y>= this.Bounds.Bottom - shape.R)
 				{
 					shape.IsSELECTED = false;
 					return;
@@ -289,20 +304,27 @@ public partial class MainWindow : Window
 		b.BorderBrush = Avalonia.Media.Brushes.Black;
 		return b;
 	}
-	private void AddButtons()
+	private void Navbar()
 	{
 		Button b_square =CreateBtn(65, "square", "switch_to_square", button_click_square);
 		Button b_circle = CreateBtn(57, "circle", "switch_to_circle", button_click_circle);
 		Button b_triangle = CreateBtn(72, "triangle", "switch_to_triangle", button_click_triangle);
 		Button b_clear = CreateBtn(50, "clear", "clear_all_shapes", button_click_clear);
 		Button b_random = CreateBtn(70, "random", "random", button_click_random);
+		
+		/*Line line = new Line();
+		line.StartPoint = new Avalonia.Point(0, 10);
+		line.EndPoint = new Avalonia.Point(100, 10);
+		line.Stroke = Avalonia.Media.Brushes.Black;
+		line.StrokeThickness = 2;*/
+
+
 		Buttons.Children.Add(b_square);
 		Buttons.Children.Add(b_circle);
 		Buttons.Children.Add(b_triangle);
 		Buttons.Children.Add(b_clear);
 		Buttons.Children.Add(b_random);
-
-		
+		//Line.Children.Add(line);	
 	}
 
 	private void button_click_circle(object sender, RoutedEventArgs args)
@@ -320,17 +342,51 @@ public partial class MainWindow : Window
 	private void button_click_clear(object sender, RoutedEventArgs args)
 	{
 		shapes.Clear();
+		this.content_radius = 50;
+		r_indicator.Text = $"radius: {this.content_radius}";
 		Redraw();
 	}
 	private void button_click_random(object sender, RoutedEventArgs args)
 	{
 		foreach (var shape in shapes)
 		{
-			int _x = random.Next(0, (int)this.Bounds.Width); 
-			int _y = random.Next(0, (int)this.Bounds.Width); 
 			shape.SetPoint(random.Next((int)shape.R/2, (int)(this.Bounds.Width-shape.R/2)), random.Next((int)shape.R/2, (int)(this.Bounds.Bottom - shape.R)));
 			
 		}
 		Redraw();
+	}
+	
+
+	private void KeyDown(object sender, KeyEventArgs e)
+	{
+		switch (e.Key)
+		{
+			case Key.OemMinus:
+				r_indicator.Text = $"radius: {content_radius -= 5}";
+				foreach (var shape in shapes)
+				{
+
+					shape.R -= 5;
+				}
+				Redraw();
+				break;
+			case Key.OemPlus:
+				r_indicator.Text = $"radius: {content_radius += 5}";
+				foreach (var shape in shapes)
+				{
+					shape.R += 5;
+				}
+				Redraw();
+				break;
+			
+			/*case Key.D:
+				if (rectangles.Count == 0) break;
+				else
+				{
+					canv.Children.Remove(rectangles[rectangles.Count - 1].R);
+					rectangles.RemoveAt(rectangles.Count - 1);
+				}
+				break;*/
+		}
 	}
 }
