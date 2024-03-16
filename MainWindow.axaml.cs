@@ -5,6 +5,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using System.Collections.Generic;
 using System;
+using System.Net;
 
 namespace Rects;
 
@@ -66,7 +67,19 @@ abstract class Shape
 		get { return color; }
 		set { color = value; }
 	}
-	
+
+	public static bool operator ==(Shape a, Shape b)
+	{
+		if (a.X == b.X && a.Y == b.Y) return true;
+		return false;
+	}
+	public static bool operator !=(Shape a, Shape b)
+	{
+		if (a.X != b.X || a.Y != b.Y) return true;
+		return false;
+	}
+
+
 }
 class Square : Shape
 {
@@ -172,11 +185,69 @@ public partial class MainWindow : Window
 
 		r_indicator.Text = $"radiuses: {string.Join(",", SetOfRadiuses)}";
 	}
+	private bool DetCheck(Shape main, Shape a, Shape b)
+	{
+		double det = ((a.X - main.X) * -1*(b.Y - main.Y)) - ((b.X - main.X) * -1*(a.Y - main.Y));
+		if (det >= 0) { return false; }
+		return true;
+	}
+	private void DrawLine(Shape a, Shape b)
+	{
+		Line line = new Line
+		{
+			StartPoint = new Avalonia.Point(a.X, a.Y),
+			EndPoint = new Avalonia.Point(b.X, b.Y),
+			Stroke = Avalonia.Media.Brushes.Black,
+			StrokeThickness = 3
+		};
+		canv.Children.Add(line);
+	}
+	private void DrawConvexHull()
+	{
+		int first_shape_index = 0;
+		Shape cur_shape;
+		Shape cur_vector;
+		//minimal X shape
+		for (int i = 0; i < shapes.Count; ++i)
+		{
+			if (shapes[i].X < shapes[first_shape_index].X) first_shape_index = i;
+		}
+
+		if (first_shape_index == 0 || first_shape_index == shapes.Count - 1) cur_vector = shapes[1];
+		else cur_vector = shapes[first_shape_index + 1];
+
+		cur_shape = shapes[first_shape_index];
+		foreach (Shape shape in shapes)
+		{
+			if (DetCheck(cur_shape, cur_vector, shape))
+			{
+				cur_vector = shape;
+			}
+		}
+		DrawLine(cur_shape, cur_vector);
+		cur_shape = cur_vector;
+
+		while (cur_shape != shapes[first_shape_index])
+		{
+			cur_vector = shapes[first_shape_index];
+			foreach (Shape shape in shapes)
+			{
+				if(DetCheck(cur_shape, cur_vector, shape))
+				{
+					cur_vector = shape;
+				}
+			}
+			DrawLine(cur_shape, cur_vector);
+			cur_shape = cur_vector;
+		}
+
+	}
 	private void Redraw()
 	{
 
 		canv.Children.Clear();
-		for(int i = 0; i <  shapes.Count; i += 3)
+		
+		for (int i = 0; i <  shapes.Count; i += 3)
 		{
 			shapes[i].Color = Avalonia.Media.Brushes.White;
 			
@@ -191,11 +262,12 @@ public partial class MainWindow : Window
 			shapes[i].Color = Avalonia.Media.Brushes.Red;
 
 		}
+		if (shapes.Count >= 3) DrawConvexHull();
 		foreach (Shape shape in shapes)
 		{
 			shape.Draw(canv);
 		}
-
+		
 		
 	}
 	private void PPressed(object sender, PointerPressedEventArgs e)
