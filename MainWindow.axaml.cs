@@ -6,13 +6,16 @@ using Avalonia.Media;
 using System.Collections.Generic;
 using System;
 using System.Net;
+using System.Transactions;
+using System.Reflection.Metadata;
+using System.Xml.Linq;
 
 namespace Rects;
 
 abstract class Shape
 {
 	protected double Radius = 50;
-	protected static IBrush color = Brushes.Aquamarine;
+	protected IBrush color = Brushes.Aquamarine;
 	protected double x;
 	protected double y;
 	protected bool IsSelected = false;
@@ -61,6 +64,11 @@ abstract class Shape
 	{
 		get { return y; }
 		set { y = value; }
+	}
+	public IBrush COLOR
+	{
+		get { return color; }
+		set { color = value; }
 	}
 	public static bool operator ==(Shape a, Shape b)
 	{
@@ -181,7 +189,7 @@ public partial class MainWindow : Window
 	}
 	private static bool DetCheck(Shape main, Shape a, Shape b)
 	{
-		double det = ((a.X - main.X) * -1*(b.Y - main.Y)) - ((b.X - main.X) * -1*(a.Y - main.Y));
+		double det = ((a.X - main.X) * -1 * (b.Y - main.Y)) - ((b.X - main.X) * -1 * (a.Y - main.Y));
 		if (det >= 0) { return false; }
 		return true;
 	}
@@ -266,6 +274,7 @@ public partial class MainWindow : Window
 	{
 		double X = e.GetCurrentPoint(canv).Position.X;
 		double Y = e.GetCurrentPoint(canv).Position.Y;
+		int copy = shapes.Count;
 		foreach (Shape shape in shapes)
 		{
 			if (shape.IsInside(X, Y))
@@ -287,7 +296,6 @@ public partial class MainWindow : Window
 			}
 
 			
-			
 			if (type == "circle")
 			{
 				shapes.Add(new Circle(X, Y));
@@ -299,22 +307,33 @@ public partial class MainWindow : Window
 			else if (type == "triangle")
 			{
 				shapes.Add(new Triangle(X, Y));
-			}
+			}	
 			cur_radiuses.Add(50);
 			UpdateRadiusIndicator();
 		}
-		
-
 		Redraw();
+		if (!IsAnySelected && copy == shapes.Count)
+		{
+			Hull_check.Text = "IsHullSelected: true";
+			foreach (Shape shape in shapes)
+			{
+
+				shape.IsSELECTED = true;
+				IsAnySelected = true;
+				shape.DX = X - shape.X;
+				shape.DY = Y - shape.Y;
+			}
+		}
+		
 	}
 	private void PMoved(object sender, PointerEventArgs e)
 	{
-		if(!IsAnySelected)
+		if (!IsAnySelected)
 		{
 			return;
 		}
 		//here we`re trying to control touching the bounds of the window
-		foreach(Shape shape in shapes)
+		foreach (Shape shape in shapes)
 		{
 			if (shape.IsSELECTED)
 			{
@@ -359,6 +378,7 @@ public partial class MainWindow : Window
 		{
 			shape.IsSELECTED = false;
 		}
+		Hull_check.Text = "IsHullSelected: false";
 	}
 	private static Button CreateBtn(int w, string content, string name, EventHandler<RoutedEventArgs> x)
 	{
@@ -384,7 +404,8 @@ public partial class MainWindow : Window
 			CreateBtn(57, "circle", "switch_to_circle", Button_click_circle),
 			CreateBtn(72, "triangle", "switch_to_triangle", Button_click_triangle),
 			CreateBtn(50, "clear", "clear_all_shapes", Button_click_clear),
-			CreateBtn(70, "random", "random", Button_click_random)
+			CreateBtn(70, "random", "random", Button_click_random),
+			
 		};
 
 		foreach (Button b in btns)
