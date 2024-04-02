@@ -5,19 +5,23 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using System.Collections.Generic;
 using System;
+using System.Net;
+using System.Transactions;
+using System.Reflection.Metadata;
+using System.Xml.Linq;
 
 namespace Rects;
 
 abstract class Shape
 {
 	protected double Radius = 50;
+	protected IBrush color = Brushes.Aquamarine;
 	protected double x;
 	protected double y;
 	protected bool IsSelected = false;
 	protected double Dx;
 	protected double Dy;
 	protected string? type;
-	protected IBrush? color;
 
 	static Shape() { }
 
@@ -61,12 +65,23 @@ abstract class Shape
 		get { return y; }
 		set { y = value; }
 	}
-	public IBrush Color
+	public IBrush COLOR
 	{
 		get { return color; }
 		set { color = value; }
 	}
-	
+	public static bool operator ==(Shape a, Shape b)
+	{
+		if (a.X == b.X && a.Y == b.Y) return true;
+		return false;
+	}
+	public static bool operator !=(Shape a, Shape b)
+	{
+		if (a.X != b.X || a.Y != b.Y) return true;
+		return false;
+	}
+
+
 }
 class Square : Shape
 {
@@ -146,8 +161,8 @@ public partial class MainWindow : Window
 	private readonly Random random = new();
 
 
-	readonly List<Shape> shapes = new();
-	readonly List<int> cur_radiuses = new();
+	private List<Shape> shapes = []; // dotnet update, u can initialize List like this, puttin []
+	readonly List<int> cur_radiuses = [];
 
 	protected bool IsAnySelected = false;
 
@@ -163,7 +178,7 @@ public partial class MainWindow : Window
 	}
 	private void UpdateRadiusIndicator()
 	{
-		HashSet<int> SetOfRadiuses = new();
+		HashSet<int> SetOfRadiuses = [];
 		cur_radiuses.Sort();
 		foreach (int x in cur_radiuses)
 		{
@@ -172,36 +187,94 @@ public partial class MainWindow : Window
 
 		r_indicator.Text = $"radiuses: {string.Join(",", SetOfRadiuses)}";
 	}
-	private void Redraw()
+	private static bool DetCheck(Shape main, Shape a, Shape b)
 	{
-
-		canv.Children.Clear();
-		for(int i = 0; i <  shapes.Count; i += 3)
+		double det = ((a.X - main.X) * -1 * (b.Y - main.Y)) - ((b.X - main.X) * -1 * (a.Y - main.Y));
+		if (det >= 0) { return false; }
+		return true;
+	}
+	private void DrawLine(Shape a, Shape b)
+	{
+		Line line = new Line
 		{
-			shapes[i].Color = Avalonia.Media.Brushes.White;
-			
-		}
-		for (int i = 1; i < shapes.Count; i += 3)
+			StartPoint = new Avalonia.Point(a.X, a.Y),
+			EndPoint = new Avalonia.Point(b.X, b.Y),
+			Stroke = Avalonia.Media.Brushes.Black,
+			StrokeThickness = 3
+		};
+		canv.Children.Add(line);
+	}
+	private List<Shape> DrawConvexHull()
+	{
+		List<Shape> connected_shapes = [];
+		int first_shape_index = 0;
+		Shape cur_shape;
+		Shape cur_vector;
+		//minimal X shape
+		for (int i = 0; i < shapes.Count; ++i)
 		{
-			shapes[i].Color = Avalonia.Media.Brushes.Blue;
-
+			if (shapes[i].X < shapes[first_shape_index].X) first_shape_index = i;
 		}
-		for (int i = 2; i < shapes.Count; i += 3)
-		{
-			shapes[i].Color = Avalonia.Media.Brushes.Red;
 
-		}
+		if (first_shape_index == 0 || first_shape_index == shapes.Count - 1) cur_vector = shapes[1];
+		else cur_vector = shapes[first_shape_index + 1];
+
+		cur_shape = shapes[first_shape_index];
 		foreach (Shape shape in shapes)
 		{
-			shape.Draw(canv);
+			if (DetCheck(cur_shape, cur_vector, shape))
+			{
+				cur_vector = shape;
+			}
 		}
+		DrawLine(cur_shape, cur_vector);
+		cur_shape = cur_vector;
 
-		
+		while (cur_shape != shapes[first_shape_index])
+		{
+			cur_vector = shapes[first_shape_index];
+			for (int i = 0; i < shapes.Count; ++i)
+			{
+				if (shapes[i] == cur_shape)
+				{
+					continue;
+				}
+				if(DetCheck(cur_shape, cur_vector, shapes[i]))
+				{
+					cur_vector = shapes[i];
+				}
+			}
+			DrawLine(cur_shape, cur_vector);
+			connected_shapes.Add(cur_vector);
+			connected_shapes.Add(cur_shape);
+			cur_shape = cur_vector;
+		}
+		return connected_shapes;
+	}
+	private void Redraw()
+	{
+		canv.Children.Clear();
+		if (shapes.Count >= 3)
+		{
+			shapes = DrawConvexHull();
+			foreach (Shape shape in shapes)
+			{
+				shape.Draw(canv);
+			}
+		}
+		else
+		{
+			foreach (Shape shape in shapes)
+			{
+				shape.Draw(canv);
+			}
+		}
 	}
 	private void PPressed(object sender, PointerPressedEventArgs e)
 	{
 		double X = e.GetCurrentPoint(canv).Position.X;
 		double Y = e.GetCurrentPoint(canv).Position.Y;
+		int copy = shapes.Count;
 		foreach (Shape shape in shapes)
 		{
 			if (shape.IsInside(X, Y))
@@ -223,7 +296,6 @@ public partial class MainWindow : Window
 			}
 
 			
-			
 			if (type == "circle")
 			{
 				shapes.Add(new Circle(X, Y));
@@ -235,22 +307,33 @@ public partial class MainWindow : Window
 			else if (type == "triangle")
 			{
 				shapes.Add(new Triangle(X, Y));
-			}
+			}	
 			cur_radiuses.Add(50);
 			UpdateRadiusIndicator();
 		}
-		
-
 		Redraw();
+		if (!IsAnySelected && copy == shapes.Count)
+		{
+			Hull_check.Text = "IsHullSelected: true";
+			foreach (Shape shape in shapes)
+			{
+
+				shape.IsSELECTED = true;
+				IsAnySelected = true;
+				shape.DX = X - shape.X;
+				shape.DY = Y - shape.Y;
+			}
+		}
+		
 	}
 	private void PMoved(object sender, PointerEventArgs e)
 	{
-		if(!IsAnySelected)
+		if (!IsAnySelected)
 		{
 			return;
 		}
 		//here we`re trying to control touching the bounds of the window
-		foreach(Shape shape in shapes)
+		foreach (Shape shape in shapes)
 		{
 			if (shape.IsSELECTED)
 			{
@@ -295,6 +378,7 @@ public partial class MainWindow : Window
 		{
 			shape.IsSELECTED = false;
 		}
+		Hull_check.Text = "IsHullSelected: false";
 	}
 	private static Button CreateBtn(int w, string content, string name, EventHandler<RoutedEventArgs> x)
 	{
@@ -320,7 +404,8 @@ public partial class MainWindow : Window
 			CreateBtn(57, "circle", "switch_to_circle", Button_click_circle),
 			CreateBtn(72, "triangle", "switch_to_triangle", Button_click_triangle),
 			CreateBtn(50, "clear", "clear_all_shapes", Button_click_clear),
-			CreateBtn(70, "random", "random", Button_click_random)
+			CreateBtn(70, "random", "random", Button_click_random),
+			
 		};
 
 		foreach (Button b in btns)

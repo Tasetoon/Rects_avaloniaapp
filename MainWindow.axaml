@@ -15,6 +15,9 @@
 			<TextBox Name="r_indicator" IsEnabled="false" Foreground="White">
 				radius: 50
 			</TextBox>
+			<TextBox Name="Hull_check" IsEnabled="false" Foreground="White">
+				IsHullSelected: false
+			</TextBox>
 		</StackPanel>
 		<Canvas Name="canv">
 
